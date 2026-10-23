@@ -292,6 +292,7 @@ app.post("/INSERT", upload.array("fotos", 3), async (req, res) => {
 });
 
 //========== CADASTRO DE VACINAS ========================
+//Adiciona os campos faltantes do banco
 app.post("/addvacina", async (req, res) => {
     const {
         nome,
@@ -300,7 +301,14 @@ app.post("/addvacina", async (req, res) => {
         especie,
         fabricante,
         lote,
-        dataFabricacao
+        dataFabricacao,
+        dataEntrada,
+        responsavel,
+        fornecedor,
+        notaFiscal,
+        temperatura,
+        localArmazenamento,
+        refrigeracao
     } = req.body;
 
     // A tela pode enviar esses campos com nomes diferentes.
@@ -309,19 +317,49 @@ app.post("/addvacina", async (req, res) => {
         req.body.quantidadeRecebida ?? req.body.quantidade
     );
 
+    //Valor unitário da vacina
+    const valorUnitario =
+        req.body.valorUnitario === "" || req.body.valorUnitario == null
+            ? NaN
+            : Number(req.body.valorUnitario);
+
+    //Valor total das vacinas
+    const valorTotal =
+        req.body.valorTotal === "" || req.body.valorTotal == null
+            ? NaN
+            : Number(req.body.valorTotal);
+
+    //Campos obrigatórios da vacina
+    const camposObrigatorios = [
+        nome,
+        tipo,
+        especie,
+        fabricante,
+        lote,
+        dataFabricacao,
+        dataValidade,
+        dataEntrada,
+        responsavel,
+        fornecedor,
+        notaFiscal
+    ]
+
+//Validação para os campos obrigatórios
     if (
-        !nome ||
-        !tipo ||
-        !especie ||
-        !fabricante ||
-        !lote ||
-        !dataValidade ||
-        !Number.isInteger(quantidade) ||
-        quantidade <= 0
+        camposObrigatorios.some (
+            campo => typeof campo !== "string" || !campo.trim()
+        ) ||
+        !NumberisInteger(quantidade) ||
+        quantidade <= 0 ||
+        !NumberisFinite(valorUnitario) ||
+        valorUnitario < 0 ||
+        !NumberisFinite(valorTotal) ||
+        valorTotal < 0 ||
+        typeof refrigeracao !== "boolean"
     ) {
         return res.status(400).json({
-            erro: "Preencha os dados obrigatórios e informe uma quantidade inteira positiva."
-        });
+            error: "Confira os campos obrigatórios, as datas, a quantidade e os valores."
+        })
     }
 
     let transaction;

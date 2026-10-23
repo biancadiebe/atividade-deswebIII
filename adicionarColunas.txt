@@ -1,0 +1,52 @@
+USE GESTAO_ANIMAL;
+GO
+
+-- Dados gerais da vacina
+IF COL_LENGTH('dbo.VACINA', 'tipo') IS NULL
+    ALTER TABLE dbo.VACINA ADD tipo VARCHAR(100) NULL;
+GO
+
+IF COL_LENGTH('dbo.VACINA', 'especie') IS NULL
+    ALTER TABLE dbo.VACINA ADD especie VARCHAR(50) NULL;
+GO
+
+-- Dados da entrada do lote
+IF COL_LENGTH('dbo.LOTE_VACINA', 'data_entrada') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD data_entrada DATE NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'responsavel') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD responsavel VARCHAR(100) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'fornecedor') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD fornecedor VARCHAR(100) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'nota_fiscal') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD nota_fiscal VARCHAR(50) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'valor_unitario') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD valor_unitario DECIMAL(10, 2) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'valor_total') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD valor_total DECIMAL(12, 2) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'temperatura') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD temperatura VARCHAR(30) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'local_armazenamento') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD local_armazenamento VARCHAR(50) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'refrigeracao') IS NULL
+BEGIN
+    ALTER TABLE dbo.LOTE_VACINA
+    ADD refrigeracao BIT NOT NULL
+        CONSTRAINT DF_LOTE_VACINA_REFRIGERACAO DEFAULT 0;
+END;
+GO
