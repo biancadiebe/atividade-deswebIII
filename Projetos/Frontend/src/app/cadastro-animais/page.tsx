@@ -172,10 +172,20 @@ function CadastroAnimaisForm() {
     async function carregarVacinas() {
       try {
         const response = await fetch("/api/vacinas");
-        const vacinas = await response.json();
+
+        if (!response.ok) {
+          throw new Error("Não foi possível carregar as vacinas.");
+        }
+
+        const vacinas: Vacina[] = await response.json();
         setVacinasCadastradas(vacinas);
       } catch (error) {
         console.error(error);
+        alert(
+          error instanceof Error
+            ? error.message
+            : "Erro ao carregar as vacinas.",
+        );
       }
     }
 

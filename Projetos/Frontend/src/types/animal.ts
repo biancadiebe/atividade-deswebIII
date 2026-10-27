@@ -12,20 +12,20 @@ export type StatusAnimal =
 
 export interface Animal {
   id: number;
-
+  id_animal: number;
   nome: string;
   rg: string;
   tipo: TipoAnimal;
+  especie: TipoAnimal;
   porte: PorteAnimal;
   raca: string;
   idade: string;
   sexo: SexoAnimal;
-
   status: StatusAnimal;
-
+  url_foto: string | null;
   fotos: string[];
   fotoPrincipal: string;
-
+  criadoEm: string | null;
   prontuario: {
     castrado: boolean;
     vermifugado: boolean;
@@ -33,17 +33,12 @@ export interface Animal {
     vacinas: string[];
     observacoes: string;
   };
-
   adestramento: {
     comandos: string[];
     observacoes: string;
   };
-
   falecimento?: {
     causa: string;
     data: string;
   };
-
-  criadoEm: string;
-  atualizadoEm?: string;
 }

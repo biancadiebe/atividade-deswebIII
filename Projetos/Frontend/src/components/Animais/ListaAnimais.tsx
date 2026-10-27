@@ -7,6 +7,31 @@ import { Animal } from "@/types/animal";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+function isAnimalList(value: unknown): value is Animal[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (animal) =>
+        typeof animal === "object" &&
+        animal !== null &&
+        typeof animal.id === "number" &&
+        typeof animal.id_animal === "number" &&
+        typeof animal.nome === "string" &&
+        typeof animal.rg === "string" &&
+        typeof animal.tipo === "string" &&
+        typeof animal.porte === "string" &&
+        typeof animal.raca === "string" &&
+        typeof animal.sexo === "string" &&
+        typeof animal.status === "string" &&
+        Array.isArray(animal.fotos) &&
+        typeof animal.prontuario === "object" &&
+        animal.prontuario !== null &&
+        typeof animal.adestramento === "object" &&
+        animal.adestramento !== null,
+    )
+  );
+}
+
 export default function ListaAnimais() {
   const router = useRouter();
   // const [animais, setAnimais] = useState<Animal[]>([]);
@@ -16,76 +41,103 @@ export default function ListaAnimais() {
   const [sexoFiltro, setSexoFiltro] = useState("");
   const [statusFiltro, setStatusFiltro] = useState("");
   const [animalSelecionado, setAnimalSelecionado] = useState<Animal | null>(null);
-
-
   const [animais, setAnimais] = useState<Animal[]>([]);
-
-
-  // ======================= Mudança 
-  // 1º Passo 
   const [qtd, setQtd] = useState(0);
-  const servidor: String = "http://localhost:3010";
-  //CRIAR UMA FUNÇÃO PARA CARREGAR O QUANTIDADE DE ANIMAIS
+  const [erroCarregamento, setErroCarregamento] = useState("");
+  const servidor = "http://localhost:3010";
+
   async function qtdAnimal() {
     try {
-      const url: string = servidor + "/qtd"
-      await fetch(url)
-        .then((resp) => { return resp.json() })
-        .then((dado) => { return setQtd(dado.qtd) })
+      const response = await fetch(`${servidor}/qtd`);
+      const dado = await response.json();
 
+      if (!response.ok || typeof dado.qtd !== "number") {
+        throw new Error(dado.error || "Não foi possível carregar a quantidade de animais.");
+      }
 
-    } catch (e) {
-      console.log("tipo de erro :" + e);
-    }
-
-  }
-
-  //=======================CARREGAR ANIMAIS 
- const servidorImg:string  ="http://localhost:3010";
-  async function carregarAn() {
-    try {
-      const url: string = servidor + "/animais";
-      await fetch(url)
-        .then((resp) => { return resp.json() })
-        .then((dado) => { setAnimais(dado); })
-         
-
+      setQtd(dado.qtd);
     } catch (error) {
-
-      console.error("Erro ao carregar animais:", error);
-
+      console.error("Erro ao carregar a quantidade de animais:", error);
     }
   }
-
-
-  useEffect(() => {
-    qtdAnimal();
-    carregarAn();
-  }, []);
-
-
-  useEffect(() => {
-    //carregarAnimais();
-
-
-  }, []);
 
   async function carregarAnimais() {
     try {
-      const response = await fetch(
-        "/api/animais"
-      );
+      const response = await fetch(`${servidor}/animais`);
+      const dado: unknown = await response.json();
 
-      const data = await response.json();
+      if (!response.ok) {
+        const mensagem =
+          typeof dado === "object" &&
+          dado !== null &&
+          "error" in dado &&
+          typeof dado.error === "string"
+            ? dado.error
+            : "Não foi possível carregar os animais.";
+        throw new Error(mensagem);
+      }
 
-      setAnimais(data);
+      if (!isAnimalList(dado)) {
+        throw new Error("O servidor retornou uma lista de animais inválida.");
+      }
+
+      setAnimais(dado);
+      setErroCarregamento("");
     } catch (error) {
-      console.error(
-        "Erro ao carregar animais:",
-        error
+      console.error("Erro ao carregar animais:", error);
+      setErroCarregamento(
+        error instanceof Error
+          ? error.message
+          : "Erro inesperado ao carregar os animais.",
       );
     }
   }
+
+  async function excluirAnimal(animal: Animal) {
+    const confirmar = window.confirm(
+      `Deseja realmente excluir o cadastro de ${animal.nome}? Esta ação não pode ser desfeita.`,
+    );
+    if (!confirmar) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${servidor}/animais/${animal.id_animal}`, {
+        method: "DELETE",
+      });
+      const dado: unknown = await response.json();
+
+      if (!response.ok) {
+        const mensagem =
+          typeof dado === "object" &&
+          dado !== null &&
+          "error" in dado &&
+          typeof dado.error === "string"
+            ? dado.error
+            : "Não foi possível excluir o animal.";
+        throw new Error(mensagem);
+      }
+
+      setAnimais((animaisAtuais) =>
+        animaisAtuais.filter((item) => item.id_animal !== animal.id_animal),
+      );
+      setAnimalSelecionado(null);
+      setQtd((quantidadeAtual) => Math.max(0, quantidadeAtual - 1));
+      window.alert("Animal excluído com sucesso.");
+    } catch (error) {
+      console.error("Erro ao excluir animal:", error);
+      window.alert(
+        error instanceof Error
+          ? error.message
+          : "Erro inesperado ao excluir o animal.",
+      );
+    }
+  }
+
+  useEffect(() => {
+    qtdAnimal();
+    carregarAnimais();
+  }, []);
 
   const animaisFiltrados = animais.filter(
     animal => {
@@ -250,6 +302,12 @@ export default function ListaAnimais() {
         titulo="Lista de Animais"
         descricao="Visualize, filtre e gerencie os animais cadastrados."
       />
+
+      {erroCarregamento && (
+        <p className="erro-carregamento" role="alert">
+          {erroCarregamento}
+        </p>
+      )}
 
       <div className="cards-grid">
         <div className="info-card">
@@ -449,6 +507,7 @@ export default function ListaAnimais() {
                     >
                       Editar
                     </button>
+
                   </div>
                 </td>
               </tr>
@@ -633,6 +692,13 @@ export default function ListaAnimais() {
                     Editar Animal
                   </button>
                 )}
+
+              <button
+                className="excluir-btn"
+                onClick={() => excluirAnimal(animalSelecionado)}
+              >
+                Excluir
+              </button>
 
               <button
                 className="fechar-modal"

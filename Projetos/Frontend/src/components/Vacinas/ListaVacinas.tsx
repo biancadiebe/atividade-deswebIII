@@ -13,6 +13,26 @@ import {
 import { Vacina }
   from "@/types/vacina";
 
+function normalizarFiltro(valor: string) {
+  return valor
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function formatarEspecie(especie: string) {
+  switch (normalizarFiltro(especie)) {
+    case "cao":
+      return "Cão";
+    case "gato":
+      return "Gato";
+    case "ambos":
+      return "Ambos";
+    default:
+      return especie;
+  }
+}
+
 export default function ListaVacinas() {
 
   const router = useRouter();
@@ -53,11 +73,12 @@ export default function ListaVacinas() {
 
       const matchTipo =
         tipoFiltro === "" ||
-        vacina.tipo === tipoFiltro;
+        normalizarFiltro(vacina.tipo) === normalizarFiltro(tipoFiltro);
 
       const matchEspecie =
         especieFiltro === "" ||
-        vacina.especie === especieFiltro;
+        normalizarFiltro(vacina.especie) ===
+          normalizarFiltro(especieFiltro);
 
       return (
         matchSearch &&
@@ -171,9 +192,10 @@ export default function ListaVacinas() {
         );
 
       if (!response.ok) {
+        const errorData = await response.json();
 
         throw new Error(
-          "Erro ao excluir"
+          errorData.error || "Erro ao excluir o lote de vacina."
         );
 
       }
@@ -196,7 +218,9 @@ export default function ListaVacinas() {
       console.error(error);
 
       alert(
-        "Erro ao excluir vacina"
+        error instanceof Error
+          ? error.message
+          : "Erro ao excluir vacina"
       );
 
     }
@@ -214,8 +238,15 @@ export default function ListaVacinas() {
           "/api/vacinas"
         );
 
-      const data =
-        await response.json();
+      if (!response.ok) {
+        const errorData = await response.json();
+
+        throw new Error(
+          errorData.error || "Erro ao carregar as vacinas."
+        );
+      }
+
+      const data: Vacina[] = await response.json();
 
       setVacinas(data);
 
@@ -224,6 +255,12 @@ export default function ListaVacinas() {
       console.error(
         "Erro ao carregar vacinas:",
         error
+      );
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Erro ao carregar as vacinas."
       );
 
     }
@@ -361,7 +398,7 @@ export default function ListaVacinas() {
             V10
           </option>
 
-          <option value="Antirrábica">
+          <option value="Antirrabica">
             Antirrábica
           </option>
 
@@ -373,6 +410,13 @@ export default function ListaVacinas() {
             V3
           </option>
 
+          <option value="V5">
+            V5
+          </option>
+
+          <option value="Giárdia">
+            Giárdia
+          </option>
         </select>
 
 
@@ -390,15 +434,15 @@ export default function ListaVacinas() {
             Todas as espécies
           </option>
 
-          <option value="Cão">
+          <option value="cao">
             Cão
           </option>
 
-          <option value="Gato">
+          <option value="gato">
             Gato
           </option>
 
-          <option value="Ambos">
+          <option value="ambos">
             Ambos
           </option>
 
@@ -458,7 +502,7 @@ export default function ListaVacinas() {
 
                 <td>{vacina.tipo}</td>
 
-                <td>{vacina.especie}</td>
+                <td>{formatarEspecie(vacina.especie)}</td>
 
                 <td>{vacina.fabricante}</td>
 
@@ -554,7 +598,7 @@ export default function ListaVacinas() {
               <p>
                 <strong>Espécie:</strong>
                 {" "}
-                {vacinaSelecionada.especie}
+                {formatarEspecie(vacinaSelecionada.especie)}
               </p>
 
               <p>

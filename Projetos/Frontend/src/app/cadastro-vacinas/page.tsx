@@ -59,6 +59,7 @@ type VacinaParaEdicao = {
   dataFabricacao?: string;
   validade?: string;
   quantidade?: number | string;
+  quantidadeRecebida?: number | string;
   dataEntrada?: string;
   responsavel?: string;
   fornecedor?: string;
@@ -129,7 +130,9 @@ export default function CadastroVacinaPage() {
           numeroLote: vacina.lote || "",
           dataFabricacao: vacina.dataFabricacao || "",
           dataValidade: vacina.validade || "",
-          quantidadeRecebida: String(vacina.quantidade ?? ""),
+          quantidadeRecebida: String(
+            vacina.quantidadeRecebida ?? vacina.quantidade ?? "",
+          ),
           dataEntrada: vacina.dataEntrada || "",
           responsavel: vacina.responsavel || "",
           fornecedor: vacina.fornecedor || "",
@@ -190,8 +193,8 @@ export default function CadastroVacinaPage() {
                 status: "ok",
               };
 
-              const response = await fetch("http://localhost:3010/addvacina", {
-                method: "POST",
+              const response = await fetch("/api/vacinas", {
+                method: modoEdicao ? "PUT" : "POST",
                 headers: {
                   "Content-Type": "application/json",
                 },
@@ -202,7 +205,9 @@ export default function CadastroVacinaPage() {
                 const errorData = await response.json();
 
                 throw new Error(
-                  errorData.error || errorData.erro || "Erro ao salvar vacina",
+                  errorData.error ||
+                    errorData.erro ||
+                    "Erro ao salvar vacina",
                 );
               }
 

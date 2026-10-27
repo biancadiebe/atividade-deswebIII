@@ -1,5 +1,6 @@
 .lista-container {
   width: 100%;
+  color: #171717;
 }
 
 
@@ -66,6 +67,8 @@
   border: 2px solid #dcdcdc;
 
   font-size: 15px;
+  color: #171717;
+  background-color: white;
 }
 
 .filtro-container input:focus {
@@ -84,6 +87,7 @@
   font-size: 15px;
 
   background-color: white;
+  color: #171717;
 }
 
 .filtro-container select:focus {

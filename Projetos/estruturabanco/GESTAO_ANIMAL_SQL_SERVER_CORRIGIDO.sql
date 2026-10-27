@@ -105,6 +105,7 @@ GO
 CREATE TABLE dbo.ANIMAL (
     id_animal       INT IDENTITY(1,1) NOT NULL,
     nome            VARCHAR(100) NOT NULL,
+    rg              VARCHAR(100) NULL,
     especie         VARCHAR(50) NOT NULL,
     raca            VARCHAR(60) NULL,
     sexo            CHAR(1) NULL,
@@ -121,7 +122,6 @@ CREATE TABLE dbo.ANIMAL (
     observacao      VARCHAR(255) NULL,
 
     CONSTRAINT PK_ANIMAL PRIMARY KEY (id_animal),
-    CONSTRAINT UQ_ANIMAL_MICROCHIP UNIQUE (microchip),
     CONSTRAINT CK_ANIMAL_SEXO CHECK (sexo IS NULL OR sexo IN ('M','F')),
     CONSTRAINT CK_ANIMAL_PORTE CHECK (porte IS NULL OR porte IN ('P','M','G')),
     CONSTRAINT CK_ANIMAL_IDADE CHECK (idade IS NULL OR idade >= 0),
@@ -130,6 +130,30 @@ CREATE TABLE dbo.ANIMAL (
         status IN ('Disponível','Adotado','Em Tratamento','Óbito')
     )
 );
+GO
+
+IF EXISTS (
+    SELECT 1
+    FROM sys.key_constraints
+    WHERE name = 'UQ_ANIMAL_MICROCHIP'
+      AND parent_object_id = OBJECT_ID('dbo.ANIMAL')
+)
+    ALTER TABLE dbo.ANIMAL DROP CONSTRAINT UQ_ANIMAL_MICROCHIP;
+GO
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = 'UX_ANIMAL_MICROCHIP_NOT_NULL'
+      AND object_id = OBJECT_ID('dbo.ANIMAL')
+)
+    CREATE UNIQUE INDEX UX_ANIMAL_MICROCHIP_NOT_NULL
+        ON dbo.ANIMAL (microchip)
+        WHERE microchip IS NOT NULL;
+GO
+
+IF COL_LENGTH('dbo.ANIMAL', 'rg') IS NULL
+    ALTER TABLE dbo.ANIMAL ADD rg VARCHAR(100) NULL;
 GO
 
 CREATE TABLE dbo.ANIMAL_USUARIO (
@@ -310,6 +334,58 @@ CREATE TABLE dbo.LOTE_VACINA (
         data_fabricacao IS NULL OR data_validade >= data_fabricacao
     )
 );
+GO
+
+/* =========================
+   CAMPOS ADICIONAIS DE VACINAS
+   ========================= */
+
+IF COL_LENGTH('dbo.VACINA', 'tipo') IS NULL
+    ALTER TABLE dbo.VACINA ADD tipo VARCHAR(100) NULL;
+GO
+
+IF COL_LENGTH('dbo.VACINA', 'especie') IS NULL
+    ALTER TABLE dbo.VACINA ADD especie VARCHAR(50) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'data_entrada') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD data_entrada DATE NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'responsavel') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD responsavel VARCHAR(100) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'fornecedor') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD fornecedor VARCHAR(100) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'nota_fiscal') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD nota_fiscal VARCHAR(50) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'valor_unitario') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD valor_unitario DECIMAL(10, 2) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'valor_total') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD valor_total DECIMAL(12, 2) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'temperatura') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD temperatura VARCHAR(30) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'local_armazenamento') IS NULL
+    ALTER TABLE dbo.LOTE_VACINA ADD local_armazenamento VARCHAR(50) NULL;
+GO
+
+IF COL_LENGTH('dbo.LOTE_VACINA', 'refrigeracao') IS NULL
+BEGIN
+    ALTER TABLE dbo.LOTE_VACINA
+    ADD refrigeracao BIT NOT NULL
+        CONSTRAINT DF_LOTE_VACINA_REFRIGERACAO DEFAULT 0;
+END;
 GO
 
 CREATE TABLE dbo.VACINA_APLICADA (

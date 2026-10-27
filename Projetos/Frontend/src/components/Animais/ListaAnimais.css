@@ -1,5 +1,6 @@
 .lista-container {
   width: 100%;
+  color: #171717;
 }
 
 .cards-grid {
@@ -41,6 +42,8 @@
   border-radius: 14px;
   border: 2px solid #dcdcdc;
   font-size: 15px;
+  color: #171717;
+  background-color: white;
 }
 
 .filtro-container input:focus {
@@ -54,6 +57,7 @@
   border: 2px solid #dcdcdc;
   font-size: 15px;
   background-color: white;
+  color: #171717;
 }
 
 .filtro-container select:focus {
@@ -247,7 +251,8 @@
 }
 
 .fechar-modal,
-.editar-btn {
+.editar-btn,
+.excluir-btn {
   border: none;
   background-color: #348888;
   color: white;
@@ -260,6 +265,14 @@
 .fechar-modal:hover,
 .editar-btn:hover {
   background-color: #267171;
+}
+
+.excluir-btn {
+  background-color: #b42318;
+}
+
+.excluir-btn:hover {
+  background-color: #8f1c13;
 }
 
 .sem-registros {
